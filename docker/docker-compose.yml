@@ -30,10 +30,18 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - SCRAPER_ID=1
+      - PYTHONUNBUFFERED=1  # Ensure Python output is not buffered
     volumes:
       - ../:/app
+      - ../logs:/app/logs  # Explicit mount for logs
+      - ../data:/app/data  # Explicit mount for data
     networks:
       - scrapy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: scrapy crawl spacenets_spider
 
   # Scraper node 2
@@ -48,10 +56,18 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - SCRAPER_ID=2
+      - PYTHONUNBUFFERED=1  # Ensure Python output is not buffered
     volumes:
       - ../:/app
+      - ../logs:/app/logs  # Explicit mount for logs
+      - ../data:/app/data  # Explicit mount for data
     networks:
       - scrapy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: scrapy crawl spacenets_spider
 
   # Scraper node 3
@@ -66,10 +82,18 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - SCRAPER_ID=3
+      - PYTHONUNBUFFERED=1  # Ensure Python output is not buffered
     volumes:
       - ../:/app
+      - ../logs:/app/logs  # Explicit mount for logs
+      - ../data:/app/data  # Explicit mount for data
     networks:
       - scrapy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: scrapy crawl spacenets_spider
 
   # Redis Commander - Web UI for Redis monitoring
@@ -88,17 +112,17 @@ services:
     networks:
       - scrapy-network
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    ports:
-      - "9000:9000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - scrapy-network
+  # portainer:
+  #   image: portainer/portainer-ce:latest
+  #   container_name: portainer
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9000:9000"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer_data:/data
+  #   networks:
+  #     - scrapy-network
 
 networks:
   scrapy-network:

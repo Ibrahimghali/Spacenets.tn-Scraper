@@ -7,6 +7,9 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 import re
+import json
+import os
+from datetime import datetime
 
 class SpacenetsPipeline:
     def process_item(self, item, spider):
@@ -86,3 +89,40 @@ class DataCleaningPipeline:
             cleaned_features[cleaned_key] = cleaned_value
         
         return cleaned_features
+
+class JsonExportPipeline:
+    """Export items to JSON file"""
+    
+    def open_spider(self, spider):
+        """Create data directory and open file"""
+        os.makedirs('data', exist_ok=True)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        scraper_id = os.environ.get('SCRAPER_ID', 'local')
+        filename = f'data/spacenets_scraper{scraper_id}_{timestamp}.json'
+        self.file = open(filename, 'w', encoding='utf-8')
+        self.file.write('[\n')
+        self.first_item = True
+        self.item_count = 0
+        spider.logger.info(f'📁 Exporting items to: {filename}')
+        
+    def close_spider(self, spider):
+        """Close file"""
+        self.file.write('\n]')
+        self.file.close()
+        spider.logger.info(f'✅ Finished exporting {self.item_count} items to data folder')
+        
+    def process_item(self, item, spider):
+        """Write item to file"""
+        if not self.first_item:
+            self.file.write(',\n')
+        self.first_item = False
+        
+        line = json.dumps(dict(item), ensure_ascii=False, indent=2)
+        self.file.write(line)
+        self.item_count += 1
+        
+        # Log every 10 items
+        if self.item_count % 10 == 0:
+            spider.logger.info(f'💾 Exported {self.item_count} items so far...')
+        
+        return item

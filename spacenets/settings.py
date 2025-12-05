@@ -66,6 +66,7 @@ DOWNLOAD_DELAY = 1
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'spacenets.pipelines.DataCleaningPipeline': 300,
+    'spacenets.pipelines.JsonExportPipeline': 350,  
     'scrapy_redis.pipelines.RedisPipeline': 400,
 }
 
@@ -94,8 +95,23 @@ AUTOTHROTTLE_MAX_DELAY = 60
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
 
-# Add unique logging for each scraper instance
-LOG_FILE = f"logs/scraper-{os.environ.get('SCRAPER_ID', 'local')}.log"
+# Configure logging
+# Enable logging and set level
+LOG_ENABLED = True
+LOG_LEVEL = 'INFO'
+LOG_FORMAT = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
+
+# Check if running in Docker (has SCRAPER_ID env var)
+if os.environ.get('SCRAPER_ID'):
+    # In Docker: Only log to stdout for docker logs command
+    # File logging handled by Docker logging driver
+    LOG_STDOUT = True
+    # Don't set LOG_FILE - it disables stdout logging in Scrapy
+else:
+    # Local: Log to file
+    LOG_FILE = f"logs/scraper-{os.environ.get('SCRAPER_ID', 'local')}.log"
+    LOG_STDOUT = True
 
 # Enables scheduling storing requests queue in redis
 SCHEDULER = "scrapy_redis.scheduler.Scheduler"

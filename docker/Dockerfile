@@ -13,11 +13,12 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create logs and data directories
-RUN mkdir -p /app/logs /app/data
-
 # Copy project files
 COPY . .
+
+# Create logs and data directories with proper permissions
+RUN mkdir -p /app/logs /app/data && \
+    chmod 777 /app/logs /app/data
 
 # Set working directory where scrapy.cfg is located
 WORKDIR /app
